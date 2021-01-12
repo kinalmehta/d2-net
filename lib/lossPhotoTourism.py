@@ -23,7 +23,7 @@ matplotlib.use('Agg')
 
 
 def loss_function(
-		model, batch, device, margin=1, safe_radius=4, scaling_steps=3, plot=False
+		model, batch, device, margin=1, safe_radius=4, scaling_steps=3, plot=False, plot_path="train_viz"
 ):
 	output = model({
 		'image1': batch['image1'].to(device),
@@ -133,7 +133,7 @@ def loss_function(
 		n_valid_samples += 1
 
 		if plot and batch['batch_idx'] % batch['log_interval'] == 0:
-			drawTraining(batch['image1'], batch['image2'], pos1, pos2, batch, idx_in_batch, output, save=True)
+			drawTraining(batch['image1'], batch['image2'], pos1, pos2, batch, idx_in_batch, output, save=True, plot_path=plot_path)
 
 	if not has_grad:
 		raise NoGradientError
@@ -181,7 +181,7 @@ def semiHardMine(distance_matrix, is_out_of_safe_radius, positive_distance, marg
 	return negDist
 
 
-def drawTraining(image1, image2, pos1, pos2, batch, idx_in_batch, output, save=False):
+def drawTraining(image1, image2, pos1, pos2, batch, idx_in_batch, output, save=False, plot_path="train_viz"):
 	pos1_aux = pos1.cpu().numpy()
 	pos2_aux = pos2.cpu().numpy()
 
@@ -250,7 +250,7 @@ def drawTraining(image1, image2, pos1, pos2, batch, idx_in_batch, output, save=F
 		im3 = cv2.line(im3, (int(pos1_aux[1, i]), int(pos1_aux[0, i])), (int(pos2_aux[1, i]) +  im1.shape[1], int(pos2_aux[0, i])), (0, 255, 0), 1)
 
 	if(save == True):
-		cv2.imwrite('train_vis/%s.%02d.%02d.%d.png' % (
+		cv2.imwrite(plot_path+'/%s.%02d.%02d.%d.png' % (
 			'train_corr' if batch['train'] else 'valid',
 			batch['epoch_idx'],
 			batch['batch_idx'] // batch['log_interval'],

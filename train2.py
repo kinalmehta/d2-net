@@ -130,13 +130,13 @@ args = parser.parse_args()
 
 print(args)
 
+plot_path = os.path.join(args.checkpoint_directory, args.checkpoint_prefix, 'train_vis')
 # Create the folders for plotting if need be
 if args.plot:
-	plot_path = os.path.join(args.checkpoint_directory, args.checkpoint_prefix, 'train_vis')
 	if os.path.isdir(plot_path):
 		print('[Warning] Plotting directory already exists.')
 	else:
-		os.mkdir(plot_path)
+		os.makedirs(plot_path)
 
 # Creating CNN model
 model = D2Net(
@@ -214,7 +214,7 @@ def process_epoch(
 		batch['log_interval'] = args.log_interval
 
 		try:
-			loss = loss_function(model, batch, device, plot=args.plot)
+			loss = loss_function(model, batch, device, plot=args.plot, plot_path=plot_path)
 		except NoGradientError:
 			continue
 
