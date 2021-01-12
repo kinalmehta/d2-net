@@ -34,7 +34,7 @@ from lib.model2 import D2Net, D2NetAlign
 
 # CUDA
 use_cuda = torch.cuda.is_available()
-device = torch.device("cuda:0" if use_cuda else "cpu")
+device = torch.device("cuda:1" if use_cuda else "cpu")
 
 # Seed
 torch.manual_seed(1)
@@ -73,8 +73,8 @@ parser.add_argument(
 	help='image preprocessing (caffe or torch)'
 )
 parser.add_argument(
-	# '--model_file', type=str, default='models/d2_tf.pth',
-	'--model_file', type=str, default='results/train_corr14_360/checkpoints/d2.10.pth',
+	'--model_file', type=str, default='models/d2_tf.pth',
+	# '--model_file', type=str, default='results/train_corr14_360/checkpoints/d2.10.pth',
 	help='path to the full model'
 )
 
@@ -141,8 +141,9 @@ if args.plot:
 # Creating CNN model
 model = D2Net(
 	model_file=args.model_file,
-	use_cuda=use_cuda
+	use_cuda=False
 )
+model=model.to(device)
 
 totalParams = sum(p.numel() for p in model.parameters())
 trainParams = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -175,7 +176,7 @@ if args.use_validation:
 # training_dataset = GazeboDataset(args.dataset_path, args.imgPairs, args.poses, args.K, args.preprocessing)
 training_dataset = PhotoTourism(args.dataset_path, args.preprocessing)
 
-training_dataset.build_dataset()
+training_dataset.build_dataset(cropSize=256)
 
 training_dataloader = DataLoader(
 	training_dataset,
@@ -184,7 +185,8 @@ training_dataloader = DataLoader(
 	shuffle=True
 )
 
-writer = SummaryWriter('runs')
+log_dir = os.path.join(args.checkpoint_directory, args.checkpoint_prefix, "run_logs")
+writer = SummaryWriter(log_dir)
 
 # Define epoch function
 def process_epoch(
@@ -295,8 +297,8 @@ for epoch_idx in range(1, args.num_epochs + 1):
 
 	# Save the current checkpoint
 	checkpoint_path = os.path.join(
-		args.checkpoint_directory,
-		'%s.%02d.pth' % (args.checkpoint_prefix, epoch_idx)
+		args.checkpoint_directory, args.checkpoint_prefix,
+		'%02d.pth' % (epoch_idx)
 	)
 	checkpoint = {
 		'args': args,
