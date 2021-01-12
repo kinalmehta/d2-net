@@ -225,7 +225,7 @@ def drawTraining(image1, image2, pos1, pos2, batch, idx_in_batch, output, save=F
 	plt.axis('off')
 
 	if(save == True):
-		savefig('train_vis/%s.%02d.%02d.%d.png' % (
+		savefig(plot_path+'/%s.%02d.%02d.%d.png' % (
 			'train' if batch['train'] else 'valid',
 			batch['epoch_idx'],
 			batch['batch_idx'] // batch['log_interval'],
