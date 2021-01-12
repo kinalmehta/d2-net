@@ -132,7 +132,7 @@ print(args)
 
 # Create the folders for plotting if need be
 if args.plot:
-	plot_path = 'train_vis'
+	plot_path = os.path.join(args.checkpoint_directory, args.checkpoint_prefix, 'train_vis')
 	if os.path.isdir(plot_path):
 		print('[Warning] Plotting directory already exists.')
 	else:
