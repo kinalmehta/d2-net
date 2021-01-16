@@ -65,7 +65,7 @@ class SoftDetectionModule(nn.Module):
 		batch = F.relu(batch)
 
 		max_per_sample = torch.max(batch.view(b, -1), dim=1)[0]
-		exp = torch.exp(batch / max_per_sample.view(b, 1, 1, 1))
+		exp = torch.exp(batch / (max_per_sample.view(b, 1, 1, 1) + 1e-9))
 		sum_exp = (
 			self.soft_local_max_size ** 2 *
 			F.avg_pool2d(
