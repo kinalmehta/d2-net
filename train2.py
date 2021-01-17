@@ -29,7 +29,7 @@ from lib.lossPhotoTourism import loss_function
 
 from lib.exceptions import NoGradientError
 
-from lib.model2 import D2Net, D2NetAlign
+from lib.model2 import D2Net, D2NetAlign, D2NetRotInv
 
 
 # CUDA
@@ -150,10 +150,15 @@ trainParams = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print("Total parameters: {} | Trainable parameters: {}".format(totalParams, trainParams))
 
 # Optimizer
-optimizer = optim.Adam(
-	filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr
-)
-scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.65)
+# optimizer = optim.Adam(
+# 	filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr
+# )
+optimizer = optim.SGD(
+		filter(lambda p: p.requires_grad, model.parameters()),
+		lr=args.lr, momentum=0.9, weight_decay=5e-4
+	)
+
+scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.9)
 
 
 # Dataset
