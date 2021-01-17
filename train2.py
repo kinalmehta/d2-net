@@ -139,7 +139,7 @@ if args.plot:
 		os.makedirs(plot_path)
 
 # Creating CNN model
-model = D2Net(
+model = D2NetRotInv(
 	model_file=args.model_file,
 	use_cuda=False
 )

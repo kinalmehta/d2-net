@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from lib.utils import imshow_image
 from sys import exit
 
+from lib.feature_extractor import DenseFeatureExtractionModuleRotInv
 
 class DenseFeatureExtractionModule(nn.Module):
 	def __init__(self, finetune_feature_extraction=False, use_cuda=True):
@@ -76,7 +77,7 @@ class SoftDetectionModule(nn.Module):
 		local_max_score = exp / (sum_exp )
 
 		depth_wise_max = torch.max(batch, dim=1)[0]
-		depth_wise_max_score = batch / (depth_wise_max.unsqueeze(1) )
+		depth_wise_max_score = batch / (depth_wise_max.unsqueeze(1) + 1e-9)
 
 		all_scores = local_max_score * depth_wise_max_score
 		score = torch.max(all_scores, dim=1)[0]
@@ -126,6 +127,46 @@ class D2Net(nn.Module):
 		super(D2Net, self).__init__()
 		
 		self.dense_feature_extraction = DenseFeatureExtractionModule(
+			finetune_feature_extraction=True,
+			use_cuda=use_cuda
+		)
+
+		self.detection = SoftDetectionModule()
+
+		if model_file is not None:
+			if use_cuda:
+				self.load_state_dict(torch.load(model_file)['model'])
+			else:
+				self.load_state_dict(torch.load(model_file, map_location='cpu')['model'])
+
+	def forward(self, batch):
+		b = batch['image1'].size(0)
+
+		dense_features = self.dense_feature_extraction(
+			torch.cat([batch['image1'], batch['image2']], dim=0)
+		)
+
+		scores = self.detection(dense_features)
+
+		dense_features1 = dense_features[: b, :, :, :]
+		dense_features2 = dense_features[b :, :, :, :]
+
+		scores1 = scores[: b, :, :]
+		scores2 = scores[b :, :, :]
+
+		return {
+			'dense_features1': dense_features1,
+			'scores1': scores1,
+			'dense_features2': dense_features2,
+			'scores2': scores2
+		}
+
+
+class D2NetRotInv(nn.Module):
+	def __init__(self, model_file=None, use_cuda=True):
+		super(D2NetRotInv, self).__init__()
+		
+		self.dense_feature_extraction = DenseFeatureExtractionModuleRotInv(
 			finetune_feature_extraction=True,
 			use_cuda=use_cuda
 		)
@@ -238,3 +279,12 @@ class D2NetAlign(nn.Module):
 			# 'H1': H1,
 			# 'H2': H2 
 		}
+
+
+if __name__=="__main__":
+	model = D2NetRotInv()
+	model = model.cpu()
+	checkpoint = {
+		'model': model.state_dict()
+	}
+	torch.save(checkpoint, "d2-net-rotinv.pth")
