@@ -56,7 +56,7 @@ class PhotoTourism(Dataset):
 
 		if(len(kp1) < minCorr or len(kp2) < minCorr):
 			# print("Less correspondences {} {}".format(len(kp1), len(kp2)))
-			return [], []
+			return [], [], []
 
 		if(matcher == "BF"):
 
@@ -80,7 +80,7 @@ class PhotoTourism(Dataset):
 		if(len(matches) > 800):
 			matches = matches[0:800]
 		elif(len(matches) < minCorr):
-			return [], []
+			return [], [], []
 
 		# im4 = cv2.drawMatches(im1, kp1, im2, kp2, matches, None, flags=2)
 		# cv2.imshow('Image4', im4)
@@ -135,7 +135,7 @@ class PhotoTourism(Dataset):
 		# cv2.imshow('Image3', im3)
 		# cv2.waitKey(0)
 
-		return pos1, pos2
+		return pos1, pos2, H
 
 	def build_dataset(self, cropSize=256):
 		print("Building Dataset.")
@@ -156,20 +156,20 @@ class PhotoTourism(Dataset):
 			img1 = np.array(img1)
 			img2 = np.array(img2)
 
-			pos1, pos2 =  self.getGrid(img1, img2, minCorr=120)
+			pos1, pos2, H =  self.getGrid(img1, img2, minCorr=120)
 
 			if(len(pos1) == 0 or len(pos2) == 0):
 				continue
 
-			self.dataset.append((img1, img2, pos1, pos2))
-
+			self.dataset.append((img1, img2, pos1, pos2, H))
+			# if len(self.dataset)>5: break
 		self.dataset
 
 	def __len__(self):
 		return len(self.dataset)
 
 	def __getitem__(self, idx):
-		image1, image2, pos1, pos2 = self.dataset[idx]
+		image1, image2, pos1, pos2, H = self.dataset[idx]
 
 		image1 = preprocess_image(image1, preprocessing=self.preprocessing)
 		image2 = preprocess_image(image2, preprocessing=self.preprocessing)
@@ -178,7 +178,8 @@ class PhotoTourism(Dataset):
 			'image1': torch.from_numpy(image1.astype(np.float32)),
 			'image2': torch.from_numpy(image2.astype(np.float32)),
 			'pos1': torch.from_numpy(pos1.astype(np.float32)),
-			'pos2': torch.from_numpy(pos2.astype(np.float32))
+			'pos2': torch.from_numpy(pos2.astype(np.float32)),
+			'H': H
 		}
 
 
