@@ -21,8 +21,8 @@ import warnings
 # from lib.dataset2 import LabDataset
 # from lib.datasetGazebo import GazeboDataset
 # from lib.datasetPhotoTourism import PhotoTourism
-# from lib.datasetGrid import PhotoTourism
-from lib.datasetGridGray import PhotoTourism
+from lib.datasetGrid import PhotoTourism
+# from lib.datasetGridGray import PhotoTourism
 
 # from lib.loss2 import loss_function
 # from lib.lossSIFT import loss_function
@@ -156,13 +156,13 @@ trainParams = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print("Total parameters: {} | Trainable parameters: {}".format(totalParams, trainParams))
 
 # Optimizer
-# optimizer = optim.Adam(
-# 	filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr
-# )
-optimizer = optim.SGD(
-		filter(lambda p: p.requires_grad, model.parameters()),
-		lr=args.lr, momentum=0.9, weight_decay=5e-4
-	)
+optimizer = optim.Adam(
+	filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr
+)
+# optimizer = optim.SGD(
+# 		filter(lambda p: p.requires_grad, model.parameters()),
+# 		lr=args.lr, momentum=0.9, weight_decay=5e-4
+# 	)
 
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.9)
 
@@ -185,8 +185,8 @@ if args.use_validation:
 
 # training_dataset = LabDataset(args.dataset_path, args.imgPairs, args.poses, args.K, args.preprocessing)
 # training_dataset = GazeboDataset(args.dataset_path, args.imgPairs, args.poses, args.K, args.preprocessing)
-# training_dataset = PhotoTourism(args.dataset_path, args.preprocessing)
-training_dataset = PhotoTourism(args.dataset_path, args.dataset_path2, args.preprocessing)
+training_dataset = PhotoTourism(args.dataset_path, args.preprocessing)
+# training_dataset = PhotoTourism(args.dataset_path, args.dataset_path2, args.preprocessing)
 
 training_dataset.build_dataset(cropSize=256)
 
@@ -256,7 +256,7 @@ def process_epoch(
 	log_file.flush()
 	writer.flush()
 
-	scheduler.step()
+	# scheduler.step()
 
 	return np.mean(epoch_losses)
 
@@ -296,6 +296,7 @@ for epoch_idx in range(1, args.num_epochs + 1):
 			log_file, args
 		)
 	)
+	scheduler.step()
 
 	if args.use_validation:
 		validation_loss_history.append(
