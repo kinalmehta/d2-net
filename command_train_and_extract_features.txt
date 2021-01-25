@@ -1,0 +1,34 @@
+
+
+################################################# TRAIN #################################################
+
+python train2.py --dataset_path /scratch/udit/phototourism/brandenburg_gate/dense/images/ --plot --checkpoint_prefix d2_scratch_caffe --model_file models/d2_ots.pth
+
+python train2.py --dataset_path /scratch/udit/phototourism/brandenburg_gate/dense/images/ --plot --checkpoint_prefix d2_scratch_torch --model_file models/d2_torch.pth --preprocessing torch --lr 1e-3
+
+python train2.py --dataset_path /scratch/udit/phototourism/brandenburg_gate/dense/images/ --plot --checkpoint_prefix d2_scratch_torch --model_file models/d2_torch_rotinv.pth --preprocessing torch
+
+
+
+
+################################################# PREDICT #################################################
+
+## Vanilla no trained model features
+
+# caffe
+python extract_features.py --image_list_file image_list_hpatches_sequences.txt --output_extension .d2-net-caffe --model_file models/d2_ots.pth
+
+# torch
+python extract_features.py --image_list_file image_list_hpatches_sequences.txt --output_extension .d2-net-torch --model_file models/d2_torch.pth --preprocessing torch
+
+
+## Phototourism trained model features
+python extract_features.py --image_list_file image_list_hpatches_sequences.txt --output_extension .d2-net --model_file models/d2_tf.pth 
+
+
+## checkpoint_PT_highRot_epoch model features
+python extract_features.py --image_list_file image_list_hpatches_sequences.txt --output_extension .d2-net-custom-1 --model_file models/checkpoint_PT_highRot_epoch/d2.15.pth
+
+
+## train_corr16_gz_15ep_curriculum model features
+python extract_features.py --image_list_file image_list_hpatches_sequences.txt --output_extension .d2-net-custom-2 --model_file models/train_corr16_gz_15ep_curriculum/d2.15.pth
