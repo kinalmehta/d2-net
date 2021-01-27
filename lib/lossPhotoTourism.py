@@ -29,7 +29,11 @@ def loss_function(
 		'image1': batch['image1'].to(device),
 		'image2': batch['image2'].to(device)
 	})
-
+	
+	# print('[INFO 1]', batch['image1'].shape, batch['image2'].shape, 
+	# 		output['dense_features1'].shape, output['dense_features2'].shape,
+	# 		output['scores1'].shape, output['scores2'].shape)
+	
 	loss = torch.tensor(np.array([0], dtype=np.float32), device=device)
 	has_grad = False
 
@@ -39,10 +43,12 @@ def loss_function(
 		dense_features1 = output['dense_features1'][idx_in_batch]
 		c, h1, w1 = dense_features1.size()
 		scores1 = output['scores1'][idx_in_batch].view(-1)
+		# print('[INFO 2]', dense_features1.shape, scores1.shape)
 
 		dense_features2 = output['dense_features2'][idx_in_batch]
 		_, h2, w2 = dense_features2.size()
 		scores2 = output['scores2'][idx_in_batch]
+		# print('[INFO 3]', dense_features2.shape, scores2.shape)
 
 		all_descriptors1 = F.normalize(dense_features1.view(c, -1), dim=0)
 		descriptors1 = all_descriptors1
