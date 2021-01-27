@@ -162,7 +162,7 @@ class PhotoTourism(Dataset):
 				continue
 
 			self.dataset.append((img1, img2, pos1, pos2, H))
-			# if len(self.dataset)>5: break
+			# if len(self.dataset)>10: break
 		self.dataset
 
 	def __len__(self):

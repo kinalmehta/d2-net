@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from lib.utils import imshow_image
 from sys import exit
 
-from lib.feature_extractor import DenseFeatureExtractionModuleRotInv
+from lib.feature_extractor import DenseFeatureExtractionModuleRotInv, DenseFeatureExtractionModuleE2Inv
 
 class DenseFeatureExtractionModule(nn.Module):
 	def __init__(self, finetune_feature_extraction=False, use_cuda=True):
@@ -166,10 +166,7 @@ class D2NetRotInv(nn.Module):
 	def __init__(self, model_file=None, use_cuda=True):
 		super(D2NetRotInv, self).__init__()
 		
-		self.dense_feature_extraction = DenseFeatureExtractionModuleRotInv(
-			finetune_feature_extraction=True,
-			use_cuda=use_cuda
-		)
+		self.dense_feature_extraction = DenseFeatureExtractionModuleE2Inv()
 
 		self.detection = SoftDetectionModule()
 
