@@ -8,6 +8,7 @@ import torchgeometry as tgm
 import matplotlib.pyplot as plt
 from lib.utils import imshow_image
 from sys import exit
+import os
 
 from lib.feature_extractor import DenseFeatureExtractionModuleRotInv, DenseFeatureExtractionModuleE2Inv
 
@@ -279,9 +280,10 @@ class D2NetAlign(nn.Module):
 
 
 if __name__=="__main__":
+	print(os.getcwd())
 	model = D2NetRotInv()
 	model = model.cpu()
 	checkpoint = {
 		'model': model.state_dict()
 	}
-	torch.save(checkpoint, "d2-net-rotinv.pth")
+	torch.save(checkpoint, "models/d2-net-e2inv.pth")

@@ -93,22 +93,20 @@ def trivial_feature_type(gspace: gspaces.GSpace, planes: int, fixparams: bool = 
     planes = int(planes)
     return enn.FieldType(gspace, [gspace.trivial_repr] * planes)
 
-
 def conv5x5(in_type: enn.FieldType, out_type: enn.FieldType, stride=1, padding=2,
-            dilation=1, bias=False):
+            dilation=1, bias=True):
     """5x5 convolution with padding"""
     return enn.R2Conv(in_type, out_type, 5,
                       stride=stride,
-                      padding=padding, 
+                      padding=padding,
                       dilation=dilation,
                       bias=bias,
                       sigma=None,
-                      frequencies_cutoff=lambda r: 3*r,
+                    #   frequencies_cutoff=lambda r: 3*r,
                       )
 
-
 def conv3x3(in_type: enn.FieldType, out_type: enn.FieldType, stride=1, padding=1,
-            dilation=1, bias=False):
+            dilation=1, bias=True):
     """3x3 convolution with padding"""
     return enn.R2Conv(in_type, out_type, 3,
                       stride=stride,
@@ -116,22 +114,8 @@ def conv3x3(in_type: enn.FieldType, out_type: enn.FieldType, stride=1, padding=1
                       dilation=dilation,
                       bias=bias,
                       sigma=None,
-                      frequencies_cutoff=lambda r: 3*r,
+                    #   frequencies_cutoff=lambda r: 3*r,
                       )
-
-
-def conv1x1(in_type: enn.FieldType, out_type: enn.FieldType, stride=1, padding=0,
-            dilation=1, bias=False):
-    """1x1 convolution with padding"""
-    return enn.R2Conv(in_type, out_type, 1,
-                      stride=stride,
-                      padding=padding,
-                      dilation=dilation,
-                      bias=bias,
-                      sigma=None,
-                      frequencies_cutoff=lambda r: 3*r,
-                      )
-
 
 FIELD_TYPE = {
     "trivial": trivial_feature_type,
@@ -142,7 +126,7 @@ class DenseFeatureExtractionModuleE2Inv(nn.Module):
     def __init__(self):
         super(DenseFeatureExtractionModuleE2Inv, self).__init__()
 
-        filters = np.array([32,32, 64,64, 128,128,128, 256,256,256, 512,512,512], dtype=np.int32)
+        filters = np.array([32,32, 64,64, 128,128,128, 256,256,256, 512,512,512], dtype=np.int32)*2
         
         # number of rotations to consider for rotation invariance
         N = 8
@@ -153,8 +137,8 @@ class DenseFeatureExtractionModuleE2Inv(nn.Module):
             self.input_type,
         ]
         
-        for filter_ in filters:
-            ip_op_types.append(FIELD_TYPE['regular'](self.gspace, filter_, fixparams=True))
+        for filter_ in filters[:10]:
+            ip_op_types.append(FIELD_TYPE['regular'](self.gspace, filter_, fixparams=False))
 
         self.model = enn.SequentialModule(*[
             conv3x3(ip_op_types[0], ip_op_types[1]),
@@ -175,35 +159,33 @@ class DenseFeatureExtractionModuleE2Inv(nn.Module):
             enn.ReLU(ip_op_types[6], inplace=True),
             conv3x3(ip_op_types[6], ip_op_types[7]),
             enn.ReLU(ip_op_types[7], inplace=True),
-            enn.PointwiseMaxPool(ip_op_types[7], 2),
 
-            conv3x3(ip_op_types[7], ip_op_types[8]),
+            enn.PointwiseAvgPool(ip_op_types[7], 2),
+
+            conv5x5(ip_op_types[7], ip_op_types[8]),
             enn.ReLU(ip_op_types[8], inplace=True),
-            conv3x3(ip_op_types[8], ip_op_types[9]),
+            conv5x5(ip_op_types[8], ip_op_types[9]),
             enn.ReLU(ip_op_types[9], inplace=True),
-            conv3x3(ip_op_types[9], ip_op_types[10]),
+            conv5x5(ip_op_types[9], ip_op_types[10]),
             enn.ReLU(ip_op_types[10], inplace=True),
-            enn.PointwiseMaxPool(ip_op_types[10], 2),
 
-            conv3x3(ip_op_types[10], ip_op_types[11]),
-            enn.ReLU(ip_op_types[11], inplace=True),
-            conv3x3(ip_op_types[11], ip_op_types[12]),
-            enn.ReLU(ip_op_types[12], inplace=True),
-            conv3x3(ip_op_types[12], ip_op_types[13]),
-            enn.ReLU(ip_op_types[13], inplace=True),
+            # conv3x3(ip_op_types[7], ip_op_types[8], padding=2, dilation=2),
+            # enn.ReLU(ip_op_types[8], inplace=True),
+            # conv3x3(ip_op_types[8], ip_op_types[9], padding=2, dilation=2),
+            # enn.ReLU(ip_op_types[9], inplace=True),
+            # conv3x3(ip_op_types[9], ip_op_types[10], padding=2, dilation=2),
+            # enn.ReLU(ip_op_types[10], inplace=True),
+            # enn.PointwiseMaxPool(ip_op_types[10], 2),
 
-            enn.GroupPooling(ip_op_types[13])
+            # conv3x3(ip_op_types[10], ip_op_types[11]),
+            # enn.ReLU(ip_op_types[11], inplace=True),
+            # conv3x3(ip_op_types[11], ip_op_types[12]),
+            # enn.ReLU(ip_op_types[12], inplace=True),
+            # conv3x3(ip_op_types[12], ip_op_types[13]),
+            # enn.ReLU(ip_op_types[13], inplace=True),
+
+            enn.GroupPooling(ip_op_types[10])
         ])
-
-        # for name, module in self.named_modules():
-        #     if isinstance(module, enn.R2Conv):
-        #         if deltaorth:
-        #             init.deltaorthonormal_init(module.weights, module.basisexpansion)
-        #     elif isinstance(module, torch.nn.BatchNorm2d):
-        #         module.weight.data.fill_(1)
-        #         module.bias.data.zero_()
-        #     elif isinstance(module, torch.nn.Linear):
-        #         module.bias.data.zero_()
 
     def forward(self, x):
         x = enn.GeometricTensor(x, self.input_type)

@@ -9,6 +9,7 @@ python train2.py --dataset_path /scratch/udit/phototourism/brandenburg_gate/dens
 python train2.py --dataset_path /scratch/udit/phototourism/brandenburg_gate/dense/images/ --plot --checkpoint_prefix d2_scratch_torch --model_file models/d2_torch_rotinv.pth --preprocessing torch
 
 
+python train2.py --dataset_path /scratch/udit/phototourism/brandenburg_gate/dense/images/ --plot --checkpoint_prefix d2_e2inv_torch --preprocessing torch
 
 
 ################################################# PREDICT #################################################
@@ -32,3 +33,6 @@ python extract_features.py --image_list_file image_list_hpatches_sequences.txt -
 
 ## train_corr16_gz_15ep_curriculum model features
 python extract_features.py --image_list_file image_list_hpatches_sequences.txt --output_extension .d2-net-custom-2 --model_file models/train_corr16_gz_15ep_curriculum/d2.15.pth
+
+## E2Inv features
+python extract_features2.py --image_list_file image_list_hpatches_sequences.txt --output_extension .d2-net-e2inv-torch --model_file checkpoints/d2_e2inv_torch/15.pth --preprocessing torch
